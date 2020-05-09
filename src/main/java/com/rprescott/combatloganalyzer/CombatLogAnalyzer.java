@@ -17,6 +17,7 @@ import com.rprescott.combatloganalyzer.services.MobDeathTracker;
 import com.rprescott.combatloganalyzer.services.SunderTracker;
 
 public class CombatLogAnalyzer {
+	//BLAHBLAHBALHLHALHAL
 
     private static final String DEFAULT_COMBAT_LOG_LOCATION = "C:\\Program Files (x86)\\World of Warcraft\\_classic_\\Logs\\WoWCombatLog.txt";
     private static final String SPELL_CAST_SUCCESS = "SPELL_CAST_SUCCESS";
