@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,7 +16,7 @@ import com.rprescott.combatloganalyzer.services.MobDeathTracker;
 import com.rprescott.combatloganalyzer.services.SunderTracker;
 
 public class CombatLogAnalyzer {
-	//BLAHBLAHBALHLHALHAL
+    // BLAHBLAHBALHLHALHAL
 
     private static final String DEFAULT_COMBAT_LOG_LOCATION = "C:\\Program Files (x86)\\World of Warcraft\\_classic_\\Logs\\WoWCombatLog.txt";
     private static final String SPELL_CAST_SUCCESS = "SPELL_CAST_SUCCESS";
@@ -33,11 +32,13 @@ public class CombatLogAnalyzer {
             if (combatLog.exists()) {
                 System.out.println(
                         "File exists at specified location. Overriding default location with user-specified location.");
-            } else {
+            }
+            else {
                 System.err.println("File does not exist at " + args[0] + ". Exiting program.");
                 System.exit(1);
             }
-        } else {
+        }
+        else {
             System.out.println("Using default combat log location: " + DEFAULT_COMBAT_LOG_LOCATION);
             if (!combatLog.exists()) {
                 System.err.println("Combat log does not exist. Exiting program.");
@@ -60,46 +61,54 @@ public class CombatLogAnalyzer {
             while ((currentLine = reader.readLine()) != null) {
                 if (!readingFirstLine) {
                     String actualData = currentLine.substring(StringUtils.ordinalIndexOf(currentLine, " ", 3) + 1,
-                        currentLine.length());
+                            currentLine.length());
                     String[] lineAsArray = actualData.split(",");
                     CombatLogEventType eventType = determineEventType(lineAsArray);
                     switch (eventType) {
-                        case SUCCESSFUL_SUNDER:
-                            // Grab player and increment sunder count
-                            sunderTracker.insertSunder(lineAsArray);
-                            break;
-                        case MOB_DEATH:
-                            mobDeathTracker.insertMobDeath(lineAsArray);
-                            break;
-                        case UNKNOWN:
-                            break;
+                    case SUCCESSFUL_SUNDER:
+                        // Grab player and increment sunder count
+                        sunderTracker.insertSunder(lineAsArray);
+                        break;
+                    case MOB_DEATH:
+                        mobDeathTracker.insertMobDeath(lineAsArray);
+                        break;
+                    case UNKNOWN:
+                        break;
                     }
-                } else {
+                }
+                else {
                     // Do nothing;
                     readingFirstLine = false;
                 }
             }
         }
-        
+
         // Display BWL Sunder Count.
-        // TODO -- @Johnny Napoline -- Track unnecessary sunders and add to the table that is formatted below.
+        // TODO -- @Johnny Napoline -- Track unnecessary sunders and add to the table
+        // that is formatted below.
         List<String> bwlTrackedCreatures = CreatureNameFinder.findAllBWLSunderTrackedCreatures();
         Map<String, List<Creature>> bwlSunders = sunderTracker.getSundersByMobNames(bwlTrackedCreatures);
+        Map<String, List<Creature>> bwlUnnecessarySunder = sunderTracker.getUnnecessarySunders(bwlTrackedCreatures);
         Integer bwlCreatureDeaths = mobDeathTracker.getDeathsByMobNames(bwlTrackedCreatures);
-        
+
         System.out.println();
-        System.out.println(StringUtils.center("|| BWL Sunder Statistics ||", 51));
-        System.out.println(StringUtils.rightPad("Player Name", 14) + "-- " + StringUtils.rightPad("Sunder Count", 14) + "-- Sunder Percentage");
+        System.out.println(StringUtils.center("|| BWL Sunder Statistics ||", 96));
+        System.out.println(StringUtils.rightPad("Player Name", 14) + "-- "
+                + StringUtils.rightPad("Effective Sunder Count", 14) + "  -- "
+                + StringUtils.rightPad("Effective Sunder Percentage", 14) + "    -- " + "Unnecessary Sunder Count");
         for (Entry<String, List<Creature>> entry : bwlSunders.entrySet()) {
-            // Player Name -- Sunder Count -- Effective Percentage
             double sunderPercentage = entry.getValue().size() / (bwlCreatureDeaths * 1.0) * 100;
-            System.out.println(StringUtils.rightPad(entry.getKey(), 14) + "-- " + StringUtils.center(String.valueOf(entry.getValue().size()), 14) + "-- " + String.format("%.2f", sunderPercentage) + "%");
+            List<Creature> bwlUnnecessarySunderCreatures = bwlUnnecessarySunder.get(entry.getKey());
+            System.out.println(StringUtils.rightPad(entry.getKey(), 14) + "-- "
+                    + StringUtils.center(String.valueOf(entry.getValue().size()), 24) + "-- "
+                    + StringUtils.leftPad(String.format("%.2f", sunderPercentage), 15) + "%               --"
+                    + StringUtils.leftPad(String.valueOf(bwlUnnecessarySunderCreatures.size()), 12));
+
         }
-        
-        // Display Mana Potion / Dark Rune Usage
-        // TODO: @RPrescott -- Add some stuff
-        
     }
+
+    // Display Mana Potion / Dark Rune Usage
+    // TODO: @RPrescott -- Add some stuff
 
     private CombatLogEventType determineEventType(String[] lineAsArray) {
         CombatLogEventType eventType = CombatLogEventType.UNKNOWN;
@@ -125,7 +134,7 @@ public class CombatLogAnalyzer {
         return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Sunder Armor")
                 && lineAsArray[1].contains("Player");
     }
-    
+
     private boolean lineIsAMobDeathEvent(String[] lineAsArray) {
         return lineAsArray[0].contains("UNIT_DIED") && lineAsArray[5].contains("Creature");
     }
