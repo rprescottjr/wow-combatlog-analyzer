@@ -50,6 +50,17 @@ public class SunderTracker {
         return sortedMap;
     }
 
+    /**
+     * Compares all creatures sundered by each player to the list (mobNames) of
+     * tracked creatures. If a sundered creature is not on the tracked list it is
+     * added to the unnecessaryCreatures List. That list is then associated back
+     * with the original player and sorted.
+     * 
+     * @param mobNames
+     *            List of String literal creature names that are tracked
+     * @return Sorted map of Player names and their associated list of Creatures
+     *         that were sundered unnecessarily
+     */
     public Map<String, List<Creature>> getUnnecessarySunders(List<String> mobNames) {
         LinkedHashMap<String, List<Creature>> unnecessarySortedMap = new LinkedHashMap<>();
         Map<String, List<Creature>> unnecessaryIntermediateMap = new HashMap<>();
