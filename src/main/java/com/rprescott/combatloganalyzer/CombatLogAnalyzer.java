@@ -145,29 +145,29 @@ public class CombatLogAnalyzer {
      * Formats a string representation of the top 3 creatures and their associated
      * values.
      * 
-     * @param unnecessayCreatureList
-     * @return formatted string representation of top 3 creature names and
-     *         associated values
+     * @param unnecessaryCreatureList
+     *            a list of creatures that were sundered unnecessarily
+     * @return formatted string representation of top 3 creature names and amount of
+     *         times they were sundered
      */
-    private String getTopUnnecessarySunderMobs(List<Creature> unnecessayCreatureList) {
+    private String getTopUnnecessarySunderMobs(List<Creature> unnecessaryCreatureList) {
         StringBuilder sBuild = new StringBuilder();
         Map<String, Integer> unnecessaryCreatureMapUnordered = new HashMap<>();
         Map<String, Integer> unnecessaryCreatureMapOrdered = new LinkedHashMap<>();
         String topSunderMobsString = "";
 
-        for (int i = 0; i < unnecessayCreatureList.size(); i++) {
-            Creature creature = unnecessayCreatureList.get(i);
-
+        for (Creature creature : unnecessaryCreatureList) {
             if (unnecessaryCreatureMapUnordered.containsKey(creature.getName())) {
                 unnecessaryCreatureMapUnordered.put(creature.getName(),
                         unnecessaryCreatureMapUnordered.get(creature.getName()) + 1);
             }
             else {
-
                 unnecessaryCreatureMapUnordered.put(creature.getName(), 1);
             }
         }
 
+        // Takes an unordered HashMap, sorts it from largest value to smallest, takes
+        // the top 3, and puts them into an LinkedHashMap
         unnecessaryCreatureMapUnordered.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).limit(3)
                 .forEachOrdered(x -> unnecessaryCreatureMapOrdered.put(x.getKey(), x.getValue()));
