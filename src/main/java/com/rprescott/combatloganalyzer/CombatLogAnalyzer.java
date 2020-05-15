@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -84,9 +85,6 @@ public class CombatLogAnalyzer {
             }
         }
 
-        // Display BWL Sunder Count.
-        // TODO -- @Johnny Napoline -- Track unnecessary sunders and add to the table
-        // that is formatted below.
         List<String> bwlTrackedCreatures = CreatureNameFinder.findAllBWLSunderTrackedCreatures();
         Map<String, List<Creature>> bwlSunders = sunderTracker.getSundersByMobNames(bwlTrackedCreatures);
         Map<String, List<Creature>> bwlUnnecessarySunder = sunderTracker.getUnnecessarySunders(bwlTrackedCreatures);
@@ -94,33 +92,19 @@ public class CombatLogAnalyzer {
 
         System.out.println();
         System.out.println(StringUtils.center("|| BWL Sunder Statistics ||", 96));
-        System.out.println(StringUtils.rightPad("Player Name", 14) + "-- "
-                + StringUtils.rightPad("Effective Sunder Count", 14) + "  -- "
-                + StringUtils.rightPad("Effective Sunder Percentage", 14) + "    -- " + "Unnecessary Sunder Count");
+        System.out.println(StringUtils.rightPad("Player Name", 13) + "--  "
+                + StringUtils.rightPad("Effective Sunder Count", 24) + "--  "
+                + StringUtils.rightPad("Effective Sunder Percentage", 29) + "--  "
+                + StringUtils.rightPad("Unnecessary Sunder Count", 26) + "--  " + StringUtils.rightPad("Mob Names", 9));
         for (Entry<String, List<Creature>> entry : bwlSunders.entrySet()) {
             double sunderPercentage = entry.getValue().size() / (bwlCreatureDeaths * 1.0) * 100;
-            Map<String, Integer> bwlUnnecessarySunderMobCounts = new HashMap<>();
             List<Creature> bwlUnnecessarySunderCreatures = bwlUnnecessarySunder.get(entry.getKey());
-            System.out.println(StringUtils.rightPad(entry.getKey(), 14) + "-- "
+
+            System.out.println(StringUtils.rightPad(entry.getKey(), 13) + "--  "
                     + StringUtils.center(String.valueOf(entry.getValue().size()), 24) + "-- "
-                    + StringUtils.leftPad(String.format("%.2f", sunderPercentage), 15) + "%               --"
-                    + StringUtils.leftPad(String.valueOf(bwlUnnecessarySunderCreatures.size()), 12));
-
-            for (int i = 0; i < bwlUnnecessarySunderCreatures.size(); i++) {
-                Creature beep = bwlUnnecessarySunderCreatures.get(i);
-
-                if (bwlUnnecessarySunderMobCounts.containsKey(beep.getName())) {
-                    bwlUnnecessarySunderMobCounts.put(beep.getName(),
-                            bwlUnnecessarySunderMobCounts.get(beep.getName() + 1));
-                }
-                else {
-
-                    bwlUnnecessarySunderMobCounts.put(beep.getName(), 1);
-                }
-            }
-
-            bwlUnnecessarySunderMobCounts.entrySet().stream()
-                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).forEachOrdered(System.out::println);
+                    + StringUtils.leftPad(String.format("%.2f", sunderPercentage), 15) + "%              --"
+                    + StringUtils.leftPad(String.valueOf(bwlUnnecessarySunderCreatures.size()), 15)
+                    + "             --  " + getTopUnnecessarySunderMobs(bwlUnnecessarySunderCreatures));
 
         }
     }
@@ -155,6 +139,46 @@ public class CombatLogAnalyzer {
 
     private boolean lineIsAMobDeathEvent(String[] lineAsArray) {
         return lineAsArray[0].contains("UNIT_DIED") && lineAsArray[5].contains("Creature");
+    }
+
+    /**
+     * Formats a string representation of the top 3 creatures and their associated
+     * values.
+     * 
+     * @param unnecessayCreatureList
+     * @return formatted string representation of top 3 creature names and
+     *         associated values
+     */
+    private String getTopUnnecessarySunderMobs(List<Creature> unnecessayCreatureList) {
+        StringBuilder sBuild = new StringBuilder();
+        Map<String, Integer> unnecessaryCreatureMapUnordered = new HashMap<>();
+        Map<String, Integer> unnecessaryCreatureMapOrdered = new LinkedHashMap<>();
+        String topSunderMobsString = "";
+
+        for (int i = 0; i < unnecessayCreatureList.size(); i++) {
+            Creature creature = unnecessayCreatureList.get(i);
+
+            if (unnecessaryCreatureMapUnordered.containsKey(creature.getName())) {
+                unnecessaryCreatureMapUnordered.put(creature.getName(),
+                        unnecessaryCreatureMapUnordered.get(creature.getName()) + 1);
+            }
+            else {
+
+                unnecessaryCreatureMapUnordered.put(creature.getName(), 1);
+            }
+        }
+
+        unnecessaryCreatureMapUnordered.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).limit(3)
+                .forEachOrdered(x -> unnecessaryCreatureMapOrdered.put(x.getKey(), x.getValue()));
+
+        for (Map.Entry<String, Integer> entry : unnecessaryCreatureMapOrdered.entrySet()) {
+            topSunderMobsString = sBuild.append(entry.getKey()).append("(").append(entry.getValue()).append("), ")
+                    .toString();
+        }
+
+        return topSunderMobsString.substring(0, topSunderMobsString.lastIndexOf(','));
+
     }
 
 }
