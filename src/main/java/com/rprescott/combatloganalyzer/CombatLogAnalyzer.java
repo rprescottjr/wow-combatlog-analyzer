@@ -14,9 +14,13 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 
 import com.rprescott.combatloganalyzer.model.Creature;
+import com.rprescott.combatloganalyzer.model.Potion;
 import com.rprescott.combatloganalyzer.services.CreatureNameFinder;
 import com.rprescott.combatloganalyzer.services.MobDeathTracker;
+import com.rprescott.combatloganalyzer.services.PotionTracker;
+import com.rprescott.combatloganalyzer.services.RuneUsageTracker;
 import com.rprescott.combatloganalyzer.services.SunderTracker;
+import com.rprescott.combatloganalyzer.utils.ResultsPrinter;
 
 public class CombatLogAnalyzer {
 
@@ -26,6 +30,8 @@ public class CombatLogAnalyzer {
     private File combatLog;
     private SunderTracker sunderTracker;
     private MobDeathTracker mobDeathTracker;
+    private PotionTracker potionTracker;
+    private RuneUsageTracker runeUsageTracker;
 
     public static void main(String[] args) throws Exception {
         File combatLog = new File(DEFAULT_COMBAT_LOG_LOCATION);
@@ -54,6 +60,8 @@ public class CombatLogAnalyzer {
         this.combatLog = combatLog;
         this.sunderTracker = new SunderTracker();
         this.mobDeathTracker = new MobDeathTracker();
+        this.potionTracker = new PotionTracker();
+        this.runeUsageTracker = new RuneUsageTracker();
     }
 
     public void analyze() throws IOException {
@@ -67,15 +75,24 @@ public class CombatLogAnalyzer {
                     String[] lineAsArray = actualData.split(",");
                     CombatLogEventType eventType = determineEventType(lineAsArray);
                     switch (eventType) {
-                    case SUCCESSFUL_SUNDER:
-                        // Grab player and increment sunder count
-                        sunderTracker.insertSunder(lineAsArray);
-                        break;
-                    case MOB_DEATH:
-                        mobDeathTracker.insertMobDeath(lineAsArray);
-                        break;
-                    case UNKNOWN:
-                        break;
+                        case SUCCESSFUL_SUNDER:
+                            // Grab player and increment sunder count
+                            sunderTracker.insertSunder(lineAsArray);
+                            break;
+                        case MOB_DEATH:
+                            mobDeathTracker.insertMobDeath(lineAsArray);
+                            break;
+                        case DARK_RUNE_USE:
+                        case DEMONIC_RUNE_USE:
+                            runeUsageTracker.insertRuneUsage(lineAsArray);
+                            break;
+                        case MAJOR_MANA_POT_USE:
+                        case LIMITED_INVULNVERABILITY_POT_USE:
+                        case FREE_ACTION_POT_USE:
+                            potionTracker.insertPotionUsage(lineAsArray);
+                            break;
+                        case UNKNOWN:
+                            break;
                     }
                 }
                 else {
@@ -107,11 +124,18 @@ public class CombatLogAnalyzer {
                     + "             --  " + getTopUnnecessarySunderMobs(bwlUnnecessarySunderCreatures));
 
         }
+
+        // Display Mana Potion / Dark Rune Usage
+        ResultsPrinter.displayTitleAndHeaderRow(
+            "BWL Potion/Rune Usage",
+            Arrays.asList("Player Name", "Mana Pot Usage", "Dark/Demonic Rune Usage"));
+        Map<String, List<Potion>> potionsByPlayer = potionTracker.getPotionUsageByPotionName("Major Mana Potion");
+        for (Entry<String, List<Potion>> entry : potionsByPlayer.entrySet()) {
+            ResultsPrinter.displayDataRow(Arrays.asList(entry.getKey(), String.valueOf(entry.getValue().size()), String.valueOf(runeUsageTracker.getRunesUsedByName(entry.getKey()))));
+        }
+        ResultsPrinter.displayHeaderSurrounder();
     }
-
-    // Display Mana Potion / Dark Rune Usage
-    // TODO: @RPrescott -- Add some stuff
-
+  
     private CombatLogEventType determineEventType(String[] lineAsArray) {
         CombatLogEventType eventType = CombatLogEventType.UNKNOWN;
         if (lineIsASuccessfulSunder(lineAsArray)) {
@@ -119,6 +143,21 @@ public class CombatLogAnalyzer {
         }
         else if (lineIsAMobDeathEvent(lineAsArray)) {
             eventType = CombatLogEventType.MOB_DEATH;
+        }
+        else if (lineIsADarkRuneUsage(lineAsArray)) {
+            eventType = CombatLogEventType.DARK_RUNE_USE;
+        }
+        else if (lineIsADemonicRuneUsage(lineAsArray)) {
+            eventType = CombatLogEventType.DEMONIC_RUNE_USE;
+        }
+        else if (lineIsAMajorManaPotUsage(lineAsArray)) {
+            eventType = CombatLogEventType.MAJOR_MANA_POT_USE;
+        }
+        else if (lineIsAFreeActionPotUsage(lineAsArray)) {
+            eventType = CombatLogEventType.FREE_ACTION_POT_USE;
+        }
+        else if (lineIsALimitedInvulnPotUsage(lineAsArray)) {
+            eventType = CombatLogEventType.LIMITED_INVULNVERABILITY_POT_USE;
         }
         return eventType;
     }
@@ -139,6 +178,31 @@ public class CombatLogAnalyzer {
 
     private boolean lineIsAMobDeathEvent(String[] lineAsArray) {
         return lineAsArray[0].contains("UNIT_DIED") && lineAsArray[5].contains("Creature");
+    }
+    
+    private boolean lineIsADarkRuneUsage(String[] lineAsArray) {
+        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Dark Rune")
+            && lineAsArray[1].contains("Player");
+    }
+    
+    private boolean lineIsADemonicRuneUsage(String[] lineAsArray) {
+        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Demonic Rune")
+            && lineAsArray[1].contains("Player");
+    }
+    
+    private boolean lineIsAMajorManaPotUsage(String[] lineAsArray) {
+        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Restore Mana")
+            && lineAsArray[9].contains("17531") && lineAsArray[1].contains("Player");
+    }
+    
+    private boolean lineIsAFreeActionPotUsage(String[] lineAsArray) {
+        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Free Action")
+            && lineAsArray[9].contains("6615") && lineAsArray[1].contains("Player");
+    }
+    
+    private boolean lineIsALimitedInvulnPotUsage(String[] lineAsArray) {
+        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Invulnerability")
+            && lineAsArray[9].contains("3169") && lineAsArray[1].contains("Player");
     }
 
     /**
