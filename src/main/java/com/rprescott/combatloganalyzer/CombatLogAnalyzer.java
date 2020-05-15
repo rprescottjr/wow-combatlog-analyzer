@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,7 +18,6 @@ import com.rprescott.combatloganalyzer.services.MobDeathTracker;
 import com.rprescott.combatloganalyzer.services.SunderTracker;
 
 public class CombatLogAnalyzer {
-    // BLAHBLAHBALHLHALHAL
 
     private static final String DEFAULT_COMBAT_LOG_LOCATION = "C:\\Program Files (x86)\\World of Warcraft\\_classic_\\Logs\\WoWCombatLog.txt";
     private static final String SPELL_CAST_SUCCESS = "SPELL_CAST_SUCCESS";
@@ -98,11 +99,28 @@ public class CombatLogAnalyzer {
                 + StringUtils.rightPad("Effective Sunder Percentage", 14) + "    -- " + "Unnecessary Sunder Count");
         for (Entry<String, List<Creature>> entry : bwlSunders.entrySet()) {
             double sunderPercentage = entry.getValue().size() / (bwlCreatureDeaths * 1.0) * 100;
+            Map<String, Integer> bwlUnnecessarySunderMobCounts = new HashMap<>();
             List<Creature> bwlUnnecessarySunderCreatures = bwlUnnecessarySunder.get(entry.getKey());
             System.out.println(StringUtils.rightPad(entry.getKey(), 14) + "-- "
                     + StringUtils.center(String.valueOf(entry.getValue().size()), 24) + "-- "
                     + StringUtils.leftPad(String.format("%.2f", sunderPercentage), 15) + "%               --"
                     + StringUtils.leftPad(String.valueOf(bwlUnnecessarySunderCreatures.size()), 12));
+
+            for (int i = 0; i < bwlUnnecessarySunderCreatures.size(); i++) {
+                Creature beep = bwlUnnecessarySunderCreatures.get(i);
+
+                if (bwlUnnecessarySunderMobCounts.containsKey(beep.getName())) {
+                    bwlUnnecessarySunderMobCounts.put(beep.getName(),
+                            bwlUnnecessarySunderMobCounts.get(beep.getName() + 1));
+                }
+                else {
+
+                    bwlUnnecessarySunderMobCounts.put(beep.getName(), 1);
+                }
+            }
+
+            bwlUnnecessarySunderMobCounts.entrySet().stream()
+                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).forEachOrdered(System.out::println);
 
         }
     }
