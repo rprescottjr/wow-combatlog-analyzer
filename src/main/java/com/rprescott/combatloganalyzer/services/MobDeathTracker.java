@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 import com.rprescott.combatloganalyzer.utils.NameNormalizer;
 
 public class MobDeathTracker {
-     
+
     private Map<String, Integer> MOB_DEATH_COUNTER = new HashMap<>();
 
     public void insertMobDeath(String[] combatLogLineAsArray) {
@@ -22,9 +22,9 @@ public class MobDeathTracker {
             MOB_DEATH_COUNTER.put(normalizedMobName, ++deathCount);
         }
     }
-    
+
     public Integer getDeathsByMobNames(List<String> mobNames) {
-        Integer mobDeaths = 0;        
+        Integer mobDeaths = 0;
         for (Entry<String, Integer> entry : MOB_DEATH_COUNTER.entrySet()) {
             if (mobNames.contains(entry.getKey())) {
                 mobDeaths += entry.getValue();
@@ -32,9 +32,9 @@ public class MobDeathTracker {
         }
         return mobDeaths;
     }
-    
+
     public Integer getDeathsByMobName(String mobName) {
         return getDeathsByMobNames(Arrays.asList(mobName));
     }
-    
+
 }

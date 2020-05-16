@@ -9,5 +9,4 @@ public enum CombatLogEventType {
     FREE_ACTION_POT_USE,
     LIMITED_INVULNVERABILITY_POT_USE,
     UNKNOWN;
-
 }

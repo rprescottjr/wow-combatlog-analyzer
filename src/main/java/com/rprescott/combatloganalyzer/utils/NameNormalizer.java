@@ -7,8 +7,8 @@ public class NameNormalizer {
     }
 
     /**
-     * Given a quote-surrounded name (Ex: "Zizek-Stalagg"), returns the name of the
-     * player without the server information or quotes.
+     * Given a quote-surrounded name (Ex: "Zizek-Stalagg"), returns the name of the player without the
+     * server information or quotes.
      * 
      * @param playerName
      * @return
@@ -16,10 +16,10 @@ public class NameNormalizer {
     public static String normalizePlayerName(String playerName) {
         return playerName.substring(1, playerName.indexOf('-'));
     }
-    
+
     /**
-     * Given a quote-surrounded mob name (Ex: "Molten Giant"), returns the name
-     * of the mob without the quotes.
+     * Given a quote-surrounded mob name (Ex: "Molten Giant"), returns the name of the mob without the
+     * quotes.
      * 
      * @param mobName
      * @return

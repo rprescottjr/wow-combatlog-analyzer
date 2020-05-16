@@ -43,23 +43,21 @@ public class SunderTracker {
             intermediateMap.put(entry.getKey(), filteredCreatures);
         }
 
-        intermediateMap.entrySet().stream()
-                .sorted(Entry.comparingByValue(Comparator.comparing(List<Creature>::size).reversed()))
-                .forEachOrdered(entry -> sortedMap.put(entry.getKey(), entry.getValue()));
+        intermediateMap.entrySet().stream().sorted(Entry.comparingByValue(Comparator.comparing(List<Creature>::size).reversed()))
+            .forEachOrdered(entry -> sortedMap.put(entry.getKey(), entry.getValue()));
 
         return sortedMap;
     }
 
     /**
-     * Compares all creatures sundered by each player to the list (mobNames) of
-     * tracked creatures. If a sundered creature is not on the tracked list it is
-     * added to the unnecessaryCreatures List. That list is then associated back
-     * with the original player and sorted.
+     * Compares all creatures sundered by each player to the list (mobNames) of tracked creatures. If a
+     * sundered creature is not on the tracked list it is added to the unnecessaryCreatures List. That
+     * list is then associated back with the original player and sorted.
      * 
      * @param mobNames
      *            List of String literal creature names that are tracked
-     * @return Sorted map of Player names and their associated list of Creatures
-     *         that were sundered unnecessarily
+     * @return Sorted map of Player names and their associated list of Creatures that were sundered
+     *         unnecessarily
      */
     public Map<String, List<Creature>> getUnnecessarySunders(List<String> mobNames) {
         LinkedHashMap<String, List<Creature>> unnecessarySortedMap = new LinkedHashMap<>();
@@ -74,9 +72,8 @@ public class SunderTracker {
             }
             unnecessaryIntermediateMap.put(entry.getKey(), unnecessaryCreatures);
         }
-        unnecessaryIntermediateMap.entrySet().stream()
-                .sorted(Entry.comparingByValue(Comparator.comparing(List<Creature>::size).reversed()))
-                .forEachOrdered(entry -> unnecessarySortedMap.put(entry.getKey(), entry.getValue()));
+        unnecessaryIntermediateMap.entrySet().stream().sorted(Entry.comparingByValue(Comparator.comparing(List<Creature>::size).reversed()))
+            .forEachOrdered(entry -> unnecessarySortedMap.put(entry.getKey(), entry.getValue()));
 
         return unnecessarySortedMap;
 
@@ -90,9 +87,8 @@ public class SunderTracker {
         System.out.println("Sunder Count by Player Results:");
 
         LinkedHashMap<String, List<Creature>> sortedMap = new LinkedHashMap<>();
-        SUNDER_COUNT_BY_PLAYER.entrySet().stream()
-                .sorted(Entry.comparingByValue(Comparator.comparing(List<Creature>::size).reversed()))
-                .forEachOrdered(entry -> sortedMap.put(entry.getKey(), entry.getValue()));
+        SUNDER_COUNT_BY_PLAYER.entrySet().stream().sorted(Entry.comparingByValue(Comparator.comparing(List<Creature>::size).reversed()))
+            .forEachOrdered(entry -> sortedMap.put(entry.getKey(), entry.getValue()));
 
         for (Entry<String, List<Creature>> entry : sortedMap.entrySet()) {
             System.out.println(entry.getKey() + " -- " + entry.getValue().size());

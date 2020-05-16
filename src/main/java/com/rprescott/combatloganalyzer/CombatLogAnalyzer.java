@@ -39,8 +39,7 @@ public class CombatLogAnalyzer {
         if (args != null && args.length > 0) {
             combatLog = new File(args[0]);
             if (combatLog.exists()) {
-                System.out.println(
-                        "File exists at specified location. Overriding default location with user-specified location.");
+                System.out.println("File exists at specified location. Overriding default location with user-specified location.");
             }
             else {
                 System.err.println("File does not exist at " + args[0] + ". Exiting program.");
@@ -71,8 +70,7 @@ public class CombatLogAnalyzer {
             boolean readingFirstLine = true;
             while ((currentLine = reader.readLine()) != null) {
                 if (!readingFirstLine) {
-                    String actualData = currentLine.substring(StringUtils.ordinalIndexOf(currentLine, " ", 3) + 1,
-                            currentLine.length());
+                    String actualData = currentLine.substring(StringUtils.ordinalIndexOf(currentLine, " ", 3) + 1, currentLine.length());
                     String[] lineAsArray = actualData.split(",");
                     CombatLogEventType eventType = determineEventType(lineAsArray);
                     switch (eventType) {
@@ -110,29 +108,25 @@ public class CombatLogAnalyzer {
 
         System.out.println();
         System.out.println(StringUtils.center("|| BWL Sunder Statistics ||", 96));
-        System.out.println(StringUtils.rightPad("Player Name", 13) + "--  "
-                + StringUtils.rightPad("Effective Sunder Count", 24) + "--  "
-                + StringUtils.rightPad("Effective Sunder Percentage", 29) + "--  "
-                + StringUtils.rightPad("Unnecessary Sunder Count", 26) + "--  " + StringUtils.rightPad("Mob Names", 9));
+        System.out.println(
+            StringUtils.rightPad("Player Name", 13) + "--  " + StringUtils.rightPad("Effective Sunder Count", 24) + "--  " + StringUtils.rightPad("Effective Sunder Percentage", 29)
+                + "--  " + StringUtils.rightPad("Unnecessary Sunder Count", 26) + "--  " + StringUtils.rightPad("Mob Names", 9));
         for (Entry<String, List<Creature>> entry : bwlSunders.entrySet()) {
             double sunderPercentage = entry.getValue().size() / (bwlCreatureDeaths * 1.0) * 100;
             List<Creature> bwlUnnecessarySunderCreatures = bwlUnnecessarySunder.get(entry.getKey());
 
-            System.out.println(StringUtils.rightPad(entry.getKey(), 13) + "--  "
-                    + StringUtils.center(String.valueOf(entry.getValue().size()), 24) + "-- "
-                    + StringUtils.leftPad(String.format("%.2f", sunderPercentage), 15) + "%              --"
-                    + StringUtils.leftPad(String.valueOf(bwlUnnecessarySunderCreatures.size()), 15)
-                    + "             --  " + getTopUnnecessarySunderMobs(bwlUnnecessarySunderCreatures));
+            System.out.println(StringUtils.rightPad(entry.getKey(), 13) + "--  " + StringUtils.center(String.valueOf(entry.getValue().size()), 24) + "-- "
+                + StringUtils.leftPad(String.format("%.2f", sunderPercentage), 15) + "%              --"
+                + StringUtils.leftPad(String.valueOf(bwlUnnecessarySunderCreatures.size()), 15) + "             --  " + getTopUnnecessarySunderMobs(bwlUnnecessarySunderCreatures));
 
         }
 
         // Display Mana Potion / Dark Rune Usage
-        ResultsPrinter.displayTitleAndHeaderRow("BWL Potion/Rune Usage",
-                Arrays.asList("Player Name", "Mana Pot Usage", "Dark/Demonic Rune Usage"));
+        ResultsPrinter.displayTitleAndHeaderRow("BWL Potion/Rune Usage", Arrays.asList("Player Name", "Mana Pot Usage", "Dark/Demonic Rune Usage"));
         Map<String, List<Potion>> potionsByPlayer = potionTracker.getPotionUsageByPotionName("Major Mana Potion");
         for (Entry<String, List<Potion>> entry : potionsByPlayer.entrySet()) {
-            ResultsPrinter.displayDataRow(Arrays.asList(entry.getKey(), String.valueOf(entry.getValue().size()),
-                    String.valueOf(runeUsageTracker.getRunesUsedByName(entry.getKey()))));
+            ResultsPrinter
+                .displayDataRow(Arrays.asList(entry.getKey(), String.valueOf(entry.getValue().size()), String.valueOf(runeUsageTracker.getRunesUsedByName(entry.getKey()))));
         }
         ResultsPrinter.displayHeaderSurrounder();
     }
@@ -164,17 +158,15 @@ public class CombatLogAnalyzer {
     }
 
     /**
-     * Determines if a line in a combat log is a successful sunder cast. This is
-     * determined by first checking if the first element is a SPELL_CAST_SUCCESS,
-     * followed by checking that the spellName is Sunder Armor, and finally that the
-     * spell caster is a Player.
+     * Determines if a line in a combat log is a successful sunder cast. This is determined by first
+     * checking if the first element is a SPELL_CAST_SUCCESS, followed by checking that the spellName is
+     * Sunder Armor, and finally that the spell caster is a Player.
      * 
      * @param lineAsArray
      * @return
      */
     private boolean lineIsASuccessfulSunder(String[] lineAsArray) {
-        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Sunder Armor")
-                && lineAsArray[1].contains("Player");
+        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Sunder Armor") && lineAsArray[1].contains("Player");
     }
 
     private boolean lineIsAMobDeathEvent(String[] lineAsArray) {
@@ -182,38 +174,32 @@ public class CombatLogAnalyzer {
     }
 
     private boolean lineIsADarkRuneUsage(String[] lineAsArray) {
-        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Dark Rune")
-                && lineAsArray[1].contains("Player");
+        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Dark Rune") && lineAsArray[1].contains("Player");
     }
 
     private boolean lineIsADemonicRuneUsage(String[] lineAsArray) {
-        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Demonic Rune")
-                && lineAsArray[1].contains("Player");
+        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Demonic Rune") && lineAsArray[1].contains("Player");
     }
 
     private boolean lineIsAMajorManaPotUsage(String[] lineAsArray) {
-        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Restore Mana")
-                && lineAsArray[9].contains("17531") && lineAsArray[1].contains("Player");
+        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Restore Mana") && lineAsArray[9].contains("17531") && lineAsArray[1].contains("Player");
     }
 
     private boolean lineIsAFreeActionPotUsage(String[] lineAsArray) {
-        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Free Action")
-                && lineAsArray[9].contains("6615") && lineAsArray[1].contains("Player");
+        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Free Action") && lineAsArray[9].contains("6615") && lineAsArray[1].contains("Player");
     }
 
     private boolean lineIsALimitedInvulnPotUsage(String[] lineAsArray) {
-        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Invulnerability")
-                && lineAsArray[9].contains("3169") && lineAsArray[1].contains("Player");
+        return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Invulnerability") && lineAsArray[9].contains("3169") && lineAsArray[1].contains("Player");
     }
 
     /**
-     * Formats a string representation of the top 3 creatures and their associated
-     * values.
+     * Formats a string representation of the top 3 creatures and their associated values.
      * 
      * @param unnecessaryCreatureList
      *            a list of creatures that were sundered unnecessarily
-     * @return formatted string representation of top 3 creature names and amount of
-     *         times they were sundered
+     * @return formatted string representation of top 3 creature names and amount of times they were
+     *         sundered
      */
     private String getTopUnnecessarySunderMobs(List<Creature> unnecessaryCreatureList) {
         StringBuilder sBuild = new StringBuilder();
@@ -224,8 +210,7 @@ public class CombatLogAnalyzer {
         if (!unnecessaryCreatureList.isEmpty()) {
             for (Creature creature : unnecessaryCreatureList) {
                 if (unnecessaryCreatureMapUnordered.containsKey(creature.getName())) {
-                    unnecessaryCreatureMapUnordered.put(creature.getName(),
-                            unnecessaryCreatureMapUnordered.get(creature.getName()) + 1);
+                    unnecessaryCreatureMapUnordered.put(creature.getName(), unnecessaryCreatureMapUnordered.get(creature.getName()) + 1);
                 }
                 else {
                     unnecessaryCreatureMapUnordered.put(creature.getName(), 1);
@@ -233,9 +218,8 @@ public class CombatLogAnalyzer {
             }
             // Takes an unordered HashMap, sorts it from largest value to smallest, takes
             // the top 3, and puts them into an LinkedHashMap
-            unnecessaryCreatureMapUnordered.entrySet().stream()
-                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).limit(3)
-                    .forEachOrdered(x -> unnecessaryCreatureMapOrdered.put(x.getKey(), x.getValue()));
+            unnecessaryCreatureMapUnordered.entrySet().stream().sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).limit(3)
+                .forEachOrdered(x -> unnecessaryCreatureMapOrdered.put(x.getKey(), x.getValue()));
 
             for (Map.Entry<String, Integer> entry : unnecessaryCreatureMapOrdered.entrySet()) {
                 topUnnecessarySunderMobsString = sBuild.append(entry.getKey()).append("(").append(entry.getValue()).append("), ").toString();
