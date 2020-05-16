@@ -76,24 +76,24 @@ public class CombatLogAnalyzer {
                     String[] lineAsArray = actualData.split(",");
                     CombatLogEventType eventType = determineEventType(lineAsArray);
                     switch (eventType) {
-                        case SUCCESSFUL_SUNDER:
-                            // Grab player and increment sunder count
-                            sunderTracker.insertSunder(lineAsArray);
-                            break;
-                        case MOB_DEATH:
-                            mobDeathTracker.insertMobDeath(lineAsArray);
-                            break;
-                        case DARK_RUNE_USE:
-                        case DEMONIC_RUNE_USE:
-                            runeUsageTracker.insertRuneUsage(lineAsArray);
-                            break;
-                        case MAJOR_MANA_POT_USE:
-                        case LIMITED_INVULNVERABILITY_POT_USE:
-                        case FREE_ACTION_POT_USE:
-                            potionTracker.insertPotionUsage(lineAsArray);
-                            break;
-                        case UNKNOWN:
-                            break;
+                    case SUCCESSFUL_SUNDER:
+                        // Grab player and increment sunder count
+                        sunderTracker.insertSunder(lineAsArray);
+                        break;
+                    case MOB_DEATH:
+                        mobDeathTracker.insertMobDeath(lineAsArray);
+                        break;
+                    case DARK_RUNE_USE:
+                    case DEMONIC_RUNE_USE:
+                        runeUsageTracker.insertRuneUsage(lineAsArray);
+                        break;
+                    case MAJOR_MANA_POT_USE:
+                    case LIMITED_INVULNVERABILITY_POT_USE:
+                    case FREE_ACTION_POT_USE:
+                        potionTracker.insertPotionUsage(lineAsArray);
+                        break;
+                    case UNKNOWN:
+                        break;
                     }
                 }
                 else {
@@ -127,16 +127,16 @@ public class CombatLogAnalyzer {
         }
 
         // Display Mana Potion / Dark Rune Usage
-        ResultsPrinter.displayTitleAndHeaderRow(
-            "BWL Potion/Rune Usage",
-            Arrays.asList("Player Name", "Mana Pot Usage", "Dark/Demonic Rune Usage"));
+        ResultsPrinter.displayTitleAndHeaderRow("BWL Potion/Rune Usage",
+                Arrays.asList("Player Name", "Mana Pot Usage", "Dark/Demonic Rune Usage"));
         Map<String, List<Potion>> potionsByPlayer = potionTracker.getPotionUsageByPotionName("Major Mana Potion");
         for (Entry<String, List<Potion>> entry : potionsByPlayer.entrySet()) {
-            ResultsPrinter.displayDataRow(Arrays.asList(entry.getKey(), String.valueOf(entry.getValue().size()), String.valueOf(runeUsageTracker.getRunesUsedByName(entry.getKey()))));
+            ResultsPrinter.displayDataRow(Arrays.asList(entry.getKey(), String.valueOf(entry.getValue().size()),
+                    String.valueOf(runeUsageTracker.getRunesUsedByName(entry.getKey()))));
         }
         ResultsPrinter.displayHeaderSurrounder();
     }
-  
+
     private CombatLogEventType determineEventType(String[] lineAsArray) {
         CombatLogEventType eventType = CombatLogEventType.UNKNOWN;
         if (lineIsASuccessfulSunder(lineAsArray)) {
@@ -180,30 +180,30 @@ public class CombatLogAnalyzer {
     private boolean lineIsAMobDeathEvent(String[] lineAsArray) {
         return lineAsArray[0].contains("UNIT_DIED") && lineAsArray[5].contains("Creature");
     }
-    
+
     private boolean lineIsADarkRuneUsage(String[] lineAsArray) {
         return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Dark Rune")
-            && lineAsArray[1].contains("Player");
+                && lineAsArray[1].contains("Player");
     }
-    
+
     private boolean lineIsADemonicRuneUsage(String[] lineAsArray) {
         return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Demonic Rune")
-            && lineAsArray[1].contains("Player");
+                && lineAsArray[1].contains("Player");
     }
-    
+
     private boolean lineIsAMajorManaPotUsage(String[] lineAsArray) {
         return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Restore Mana")
-            && lineAsArray[9].contains("17531") && lineAsArray[1].contains("Player");
+                && lineAsArray[9].contains("17531") && lineAsArray[1].contains("Player");
     }
-    
+
     private boolean lineIsAFreeActionPotUsage(String[] lineAsArray) {
         return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Free Action")
-            && lineAsArray[9].contains("6615") && lineAsArray[1].contains("Player");
+                && lineAsArray[9].contains("6615") && lineAsArray[1].contains("Player");
     }
-    
+
     private boolean lineIsALimitedInvulnPotUsage(String[] lineAsArray) {
         return lineAsArray[0].contains(SPELL_CAST_SUCCESS) && lineAsArray[10].contains("Invulnerability")
-            && lineAsArray[9].contains("3169") && lineAsArray[1].contains("Player");
+                && lineAsArray[9].contains("3169") && lineAsArray[1].contains("Player");
     }
 
     /**
@@ -220,30 +220,32 @@ public class CombatLogAnalyzer {
         Map<String, Integer> unnecessaryCreatureMapUnordered = new HashMap<>();
         Map<String, Integer> unnecessaryCreatureMapOrdered = new LinkedHashMap<>();
         String topSunderMobsString = "";
+        String noSunders = "No Unnecessary Sunders";
 
-        for (Creature creature : unnecessaryCreatureList) {
-            if (unnecessaryCreatureMapUnordered.containsKey(creature.getName())) {
-                unnecessaryCreatureMapUnordered.put(creature.getName(),
-                        unnecessaryCreatureMapUnordered.get(creature.getName()) + 1);
+        if (!unnecessaryCreatureList.isEmpty()) {
+            for (Creature creature : unnecessaryCreatureList) {
+                if (unnecessaryCreatureMapUnordered.containsKey(creature.getName())) {
+                    unnecessaryCreatureMapUnordered.put(creature.getName(),
+                            unnecessaryCreatureMapUnordered.get(creature.getName()) + 1);
+                }
+                else {
+                    unnecessaryCreatureMapUnordered.put(creature.getName(), 1);
+                }
             }
-            else {
-                unnecessaryCreatureMapUnordered.put(creature.getName(), 1);
+            // Takes an unordered HashMap, sorts it from largest value to smallest, takes
+            // the top 3, and puts them into an LinkedHashMap
+            unnecessaryCreatureMapUnordered.entrySet().stream()
+                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).limit(3)
+                    .forEachOrdered(x -> unnecessaryCreatureMapOrdered.put(x.getKey(), x.getValue()));
+
+            for (Map.Entry<String, Integer> entry : unnecessaryCreatureMapOrdered.entrySet()) {
+                topSunderMobsString = sBuild.append(entry.getKey()).append("(").append(entry.getValue()).append("), ")
+                        .toString();
             }
+            return topSunderMobsString.substring(0, topSunderMobsString.lastIndexOf(','));
         }
-
-        // Takes an unordered HashMap, sorts it from largest value to smallest, takes
-        // the top 3, and puts them into an LinkedHashMap
-        unnecessaryCreatureMapUnordered.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).limit(3)
-                .forEachOrdered(x -> unnecessaryCreatureMapOrdered.put(x.getKey(), x.getValue()));
-
-        for (Map.Entry<String, Integer> entry : unnecessaryCreatureMapOrdered.entrySet()) {
-            topSunderMobsString = sBuild.append(entry.getKey()).append("(").append(entry.getValue()).append("), ")
-                    .toString();
+        else {
+            return noSunders;
         }
-
-        return topSunderMobsString.substring(0, topSunderMobsString.lastIndexOf(','));
-
     }
-
 }
