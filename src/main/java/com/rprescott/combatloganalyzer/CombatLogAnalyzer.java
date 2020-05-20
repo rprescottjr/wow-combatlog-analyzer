@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -105,20 +107,14 @@ public class CombatLogAnalyzer {
         Map<String, List<Creature>> bwlSunders = sunderTracker.getSundersByMobNames(bwlTrackedCreatures);
         Map<String, List<Creature>> bwlUnnecessarySunder = sunderTracker.getUnnecessarySunders(bwlTrackedCreatures);
         Integer bwlCreatureDeaths = mobDeathTracker.getDeathsByMobNames(bwlTrackedCreatures);
+        NumberFormat formatter = new DecimalFormat("##.##%");
 
-        System.out.println();
-        System.out.println(StringUtils.center("|| BWL Sunder Statistics ||", 96));
-        System.out.println(
-            StringUtils.rightPad("Player Name", 13) + "--  " + StringUtils.rightPad("Effective Sunder Count", 24) + "--  " + StringUtils.rightPad("Effective Sunder Percentage", 29)
-                + "--  " + StringUtils.rightPad("Unnecessary Sunder Count", 26) + "--  " + StringUtils.rightPad("Mob Names", 9));
+        ResultsPrinter.displayTitleAndHeaderRow("BWL Sunder Statistics", Arrays.asList("Player Name", "Effective Sunder", "Effective Percent", "Unnecessary Count", "Top Mobs"));
         for (Entry<String, List<Creature>> entry : bwlSunders.entrySet()) {
-            double sunderPercentage = entry.getValue().size() / (bwlCreatureDeaths * 1.0) * 100;
+            double sunderPercentage = entry.getValue().size() / (bwlCreatureDeaths * 1.0);
             List<Creature> bwlUnnecessarySunderCreatures = bwlUnnecessarySunder.get(entry.getKey());
-
-            System.out.println(StringUtils.rightPad(entry.getKey(), 13) + "--  " + StringUtils.center(String.valueOf(entry.getValue().size()), 24) + "-- "
-                + StringUtils.leftPad(String.format("%.2f", sunderPercentage), 15) + "%              --"
-                + StringUtils.leftPad(String.valueOf(bwlUnnecessarySunderCreatures.size()), 15) + "             --  " + getTopUnnecessarySunderMobs(bwlUnnecessarySunderCreatures));
-
+            ResultsPrinter.displayDataRow(Arrays.asList(entry.getKey(), String.valueOf(entry.getValue().size()), String.valueOf(formatter.format(sunderPercentage)),
+                String.valueOf(bwlUnnecessarySunderCreatures.size()), String.valueOf(getTopUnnecessarySunderMobs(bwlUnnecessarySunderCreatures))));
         }
 
         // Display Mana Potion / Dark Rune Usage
